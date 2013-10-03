@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+   
+        <EditText
+            android:id="@+id/editText1"
+            android:layout_width="match_parent"
+            android:layout_height="104dp"
+            android:hint="User1"
+            android:inputType="textMultiLine"
+            android:lines="6"
+            android:scrollHorizontally="false" >
+
+            <requestFocus />
+        </EditText>
+        
+        
+        <EditText
+            android:id="@+id/editText2"
+            android:layout_width="match_parent"
+            android:layout_height="104dp"
+            android:hint="User2"
+            android:inputType="textMultiLine"
+            android:lines="6"
+            android:scrollHorizontally="false" >
+
+        </EditText>
+        
+
+        
+   
+
+</LinearLayout>

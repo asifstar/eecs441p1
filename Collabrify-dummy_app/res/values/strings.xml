@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Collabrify-dummy_app</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_write_main">Writify</string>
+    <string name="action_settings">Settings</string>
+    
+    <string-array
+        name="planets_array">
+        <item
+            >Create Session</item>
+        <item
+            >Leave Session</item>
+        
+    </string-array>
+
+</resources>
