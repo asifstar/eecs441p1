@@ -3,16 +3,35 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
+    
+    
+    
     <EditText
         android:id="@+id/BroadcastText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
+        android:layout_alignTop="@id/BroadcastText"
         android:layout_centerHorizontal="true"
-        android:ems="10" >
+        android:ems="10"
+        android:hint="Username" >
 
         <requestFocus />
     </EditText>
+    
+    
+    <EditText
+        android:id="@+id/FriendsID"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/BroadcastText"
+        android:layout_below="@+id/BroadcastText"
+        android:ems="10"
+        android:hint="Friend's Username" >
+
+    </EditText>
+    
+    
+    
 
     <Button
         android:id="@+id/BroadcastButton"
@@ -20,7 +39,8 @@
         android:layout_height="wrap_content"
         android:layout_alignRight="@+id/BroadcastText"
         android:layout_below="@+id/BroadcastText"
-        android:text="Broadcast" />
+        android:text="Broadcast"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/BroadcastedText"
@@ -35,7 +55,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:text="CreateSession" />
+        android:text="CreateSession"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/getSessionButton"
@@ -43,7 +64,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:text="Join Session" />
+        android:text="Join Session"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/LeaveSessionButton"
@@ -51,7 +73,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:text="Leave Session" />
+        android:text="Leave Session"
+        android:visibility="gone" />
 
     <CheckBox
         android:id="@+id/withBaseFileCheckBox"
@@ -59,7 +82,8 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/ConnectButton"
         android:layout_alignParentLeft="true"
-        android:text="With base file" />
+        android:text="With base file"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/button1"
@@ -67,7 +91,8 @@
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/BroadcastedText"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="27dp"
+        android:layout_marginBottom="10dp"
         android:text="Signin" />
+
 
 </RelativeLayout>

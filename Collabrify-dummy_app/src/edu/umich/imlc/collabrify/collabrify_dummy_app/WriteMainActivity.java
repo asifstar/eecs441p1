@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.Stack;
 import java.util.logging.Level;
 
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -43,7 +44,8 @@ public class WriteMainActivity extends Activity {
 	private TextView label2;
 	private EditText userName;
 	private String userNameStr;
-	
+	private Boolean checkRec;
+	private String recUser;
 	
 	private Button undoBtn;
 	private Button redoBtn;
@@ -55,6 +57,11 @@ public class WriteMainActivity extends Activity {
 	private String sessionName;
 	private CollabrifyClient myClient;
 	private ArrayList<String> tags = new ArrayList<String>();
+	private int LocalCursorPosition;
+	private Boolean allowChange = true;
+	private String LastForeignString;
+	private Boolean LastChange = true;
+	
 	
 	
 	private AlertDialog.Builder msgWindow;
@@ -67,8 +74,8 @@ public class WriteMainActivity extends Activity {
 	private CollabrifyListener collabrifyListener;
 	
 	
-	private LinkedList<TextProperties> undoStack = new LinkedList<TextProperties>();
-	private LinkedList<TextProperties> redoStack = new LinkedList<TextProperties>();
+	private Stack<TextProperties> undoStack = new Stack<TextProperties>();
+	private Stack<TextProperties> redoStack = new Stack<TextProperties>();
 	
 	
 	
@@ -76,24 +83,7 @@ public class WriteMainActivity extends Activity {
 	public void CreateCollabrify(){
 		
 	}
-	
-	
-	public void CreateDefaultSession(){
-		Random rand = new Random();
-        sessionName = "WeWrite " + rand.nextInt(Integer.MAX_VALUE);
-        
-        try{
-        
-        	myClient.createSession(sessionName, tags, null, 0);
-        	Log.i("writify", "Created Session: " + sessionName);
-        	
-        }catch(CollabrifyException e){
-        	Log.e(TAG, "error", e);
-        }
-		
-		
-		
-	}
+
 	
 	
 	public void initControls(){
@@ -117,11 +107,16 @@ public class WriteMainActivity extends Activity {
 	    	@Override
 	    	public void onClick(View v){
 	    		if (undoStack.size() > 0){
+	    			allowChange = false;
 	    			TextProperties tp = undoStack.pop();
 	    			TextProperties tp2 = new TextProperties();
 	    			tp2.typedText = writePad.getText().toString();
 	    			writePad.setText(tp.typedText);
 	    			redoStack.push(tp2);
+	    			allowChange = true;
+	    			Log.d("undopop", undoStack.size() +  " Poped Text: " + tp.typedText);
+	    			Log.d("redopush", redoStack.size() +  " Pushed Text: " + tp2.typedText);
+	    			
 	    			
 	    		}else{
 	    			label.setText("Nothing to undo!");
@@ -138,11 +133,16 @@ public class WriteMainActivity extends Activity {
 	    	@Override
 	    	public void onClick(View v){
 	    		if (redoStack.size() > 0){
+	    			allowChange = false;
 	    			TextProperties tp = redoStack.pop();
 	    			TextProperties tp2 = new TextProperties();
 	    			tp2.typedText = writePad.getText().toString();
 	    			writePad.setText(tp.typedText);
 	    			undoStack.push(tp2);
+	    			allowChange = true;
+	    			Log.d("redopop", redoStack.size() +  " Poped Text: " + tp.typedText);
+	    			Log.d("undopush", undoStack.size() +  " Pushed Text: " + tp2.typedText);
+	    			
 	    		}else{
 	    			label.setText("Nothing to redo!");
 	    			
@@ -163,28 +163,34 @@ public class WriteMainActivity extends Activity {
 		    	@Override
 		    	public void afterTextChanged(Editable s) {
 		    	   // This is triggered after change	
-
+		    		/*
 		    		if (writePad.hasFocus()){
 		    			TextProperties tp = new TextProperties();
 			    		tp.typedText = prevText;
 		    			undoStack.push(tp);
-		    			for (int i=0; i<undoStack.size(); i++){
-		    				System.out.println("=>" + undoStack.get(i));
-		    			}
 		    		}
+		    		*/
+		    		recUser = userNameStr;
 		    	}
 		    	 
 		    	@Override
 		    	   public void beforeTextChanged(CharSequence s, int start, 
 		    	     int count, int after) {
-		    			label.setText("Previous : " + s.toString());
-		    			//TextProperties tp = new TextProperties();
-		    			if (writePad.hasFocus()){
-		    				prevText = s.toString();
+		    		
+		    		if (recUser == userNameStr){
+		    			if (allowChange)
+		    			{
+				    		TextProperties tp = new TextProperties();
+				    		tp.typedText = writePad.getText().toString();
+				    		if (tp.typedText == null)
+				    		{
+				    			tp.typedText = "";
+				    		}
+			    			undoStack.push(tp);
+			    			Log.d("push", undoStack.size() +  " Pushed Text: " + tp.typedText);
 		    			}
 		    			
-		    		// Before Change
-		    		//label.setText("OnTyping: " + s + " NumChar: " + count + " StartPos: " + start + " Before: " + before);
+		    		}
 		    	   }
 		    	 
 		    	@Override
@@ -198,18 +204,25 @@ public class WriteMainActivity extends Activity {
 		            {
 		              try
 		              {
+		                if (recUser == userNameStr){
+		                TextProperties tp = new TextProperties();
+		                	
 		            	InputProp.Properties ip = InputProp.Properties.newBuilder()
 		            			.setTypedText(writePad.getText().toString())
 		            			.setCursorPosition(writePad.getSelectionEnd())
 		            			.setMode(InputProp.Properties.EditMode.INSERT)
 		            			.setUserName(userNameStr).build();
 		            	
+		            	LocalCursorPosition = writePad.getSelectionEnd();
+		            	Log.i("currentcursor" , String.valueOf(writePad.getSelectionEnd()) + " " + LocalCursorPosition);
+		                
 		            	
-		                myClient.broadcast(ip.toByteArray(),
+		            	myClient.broadcast(ip.toByteArray(),
 		                    "lol");
+		            	  }
 		                
-		                
-		                Log.i(TAG, "myClient Info=> " + myClient.displayName() + " " + myClient.currentSessionOwner().getId() + " " + myClient.currentSessionOrderId() + " " + myClient.currentSessionParticipantCount() + " " + myClient.accountGmail()  + " " + myClient.currentSessionParticipants().size());
+		                //Log.i(TAG, "myClient Info=> " + myClient.displayName() + " " + myClient.currentSessionOwner().getId() + " " + myClient.currentSessionOrderId() + " " + myClient.currentSessionParticipantCount() + " " + myClient.accountGmail()  + " " + myClient.currentSessionParticipants().size());
+		                //Log.i("testing", writePad.)
 		              }
 		              catch( CollabrifyException e )
 		              {
@@ -232,8 +245,7 @@ public class WriteMainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.write_main);
 		
-		
-		
+		checkRec = false;
 		// init controls()
 		initControls();
 		
@@ -244,6 +256,10 @@ public class WriteMainActivity extends Activity {
 		undoEvent();
 		
 		redoEvent();
+		
+		
+	
+		
 		
 		/** Collabrify Listener **/
 		collabrifyListener = new CollabrifyAdapter()
@@ -268,6 +284,7 @@ public class WriteMainActivity extends Activity {
 	      public void onReceiveEvent(final long orderId, int subId,
 	          String eventType, final byte[] data)
 	      {
+	    	
 	        Utils.printMethodName(TAG);
 	        Log.d(TAG, "RECEIVED SUB ID:" + subId);
 	        runOnUiThread(new Runnable()
@@ -282,7 +299,25 @@ public class WriteMainActivity extends Activity {
 					ip = InputProp.Properties.parseFrom(data);
 					
 					if (!ip.getUserName().equals(userNameStr)){
-						writePad.setText(ip.getTypedText().toCharArray(), ip.getCursorPosition(), ip.getTypedText().length());
+						//label.setText("287" + writePad.getSelectionEnd());
+						writePad.setText(ip.getTypedText());
+						LastChange = false;
+						//label.setText("289" + writePad.getSelectionEnd());
+						Log.i("localcursor", "Receieved Event and After Set Text: " + LocalCursorPosition);
+						writePad.setSelection(LocalCursorPosition);
+						
+						//label.setText("Local: " + LocalCursorPosition + " Foreign: " + ip.getCursorPosition());
+						
+						//writePad.setSelection(LocalCursorPosition);
+						/*if (ip.getCursorPosition() < LocalCursorPosition){
+							writePad.setSelection(ip.getCursorPosition() + 1);
+						}else{
+							writePad.setSelection(ip.getCursorPosition());
+						}*/
+						//writePad.setSelection(LocalCursorPosition);
+						
+						recUser = ip.getUserName().toString();
+						Log.i("parse", ip.getTypedText().toString() + " ColUser: " + ip.getUserName().toString() + " LocalUser: " + userNameStr);
 					}
 					
 					//label.setText(ip.getTypedText());
@@ -295,6 +330,7 @@ public class WriteMainActivity extends Activity {
 	            
 	          }
 	        });
+	       
 	      }
 
 	      @Override
@@ -324,6 +360,7 @@ public class WriteMainActivity extends Activity {
 	                  sessionId = sessionList.get(which).id();
 	                  sessionName = sessionList.get(which).name();
 	                  myClient.joinSession(sessionId, null);
+	                  Log.i("sessionid","Session ID: "  + sessionId);
 	                }
 	                catch( CollabrifyException e )
 	                {
@@ -494,12 +531,49 @@ public class WriteMainActivity extends Activity {
 	    try
 	    {
 	    	
-	    	Random rand = new Random();
-	        userNameStr = "wewrite" + rand.nextInt(Integer.MAX_VALUE);
+	    	Bundle extras = getIntent().getExtras();
+			if (extras != null){
+			    Log.i("username", extras.getString("username").toString());
+			    userNameStr = extras.getString("username").toString();
+			    recUser = userNameStr;
+			}else{
+				Log.e("bundleIntent", "null");
+				
+			}
 	    	
 	      myClient = new CollabrifyClient(this, "asifaziz@umich.edu", userNameStr,
 	          "441fall2013@umich.edu", "XY3721425NoScOpE", getLatestEvent,
 	          collabrifyListener);
+	      
+	      
+	      if (extras.containsKey("fusername")){
+	    	  Random rand = new Random();
+		      String newSession = "writify.sessions." + userNameStr + "." + extras.getString("fusername") + "." +  rand.nextInt(Integer.MAX_VALUE);
+		      
+		      try{
+		          
+		        	myClient.createSession(newSession, tags, null, 0
+		        			);
+		        	Log.i("writify", "Custom Created Session: " + sessionName);
+		        	
+		        }catch(CollabrifyException e){
+		        	Log.e(TAG, "error", e);
+		        }
+				
+  
+	      }else{
+	    	try {
+	  			myClient.requestSessionList(tags);
+	  		} catch (CollabrifyException e1) {
+	  			// TODO Auto-generated catch block
+	  			e1.printStackTrace();
+	  		}
+	      }
+	      
+	      
+	      
+	      
+	      
 	    }
 	    catch( CollabrifyException e )
 	    {
@@ -512,12 +586,14 @@ public class WriteMainActivity extends Activity {
 	    
 
 		//CreateDefaultSession();
+	    /*
 	    try {
 			myClient.requestSessionList(tags);
 		} catch (CollabrifyException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		*/
 		
 		
 	}

@@ -63,6 +63,7 @@ public class MainActivity extends Activity
   private Button signInBtn;
   private EditText editText;
   private EditText editText2;
+  private EditText FriendsID;
  
   private class EditTextProp {
 	  public String inputtext;
@@ -147,22 +148,39 @@ public class MainActivity extends Activity
     getSessionButton = (Button) findViewById(R.id.getSessionButton);
     leaveSessionButton = (Button) findViewById(R.id.LeaveSessionButton);
     signInBtn = (Button) findViewById(R.id.button1);
+    FriendsID = (EditText) findViewById(R.id.FriendsID);
     
     
     
     signInBtn.setOnClickListener(new OnClickListener(){
     	@Override
     	public void onClick(View v){
+    		
     		//setContentView(R.layout.linear_main);
     		//createWritifyTextInput();
     		//Intent intent = new Intent(MainActivity.this, MainActivity.class);
     		//startActivity(intent);
     		//overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
     		
-    		Intent myIntent = new Intent(MainActivity.this, WriteMainActivity.class);
-    		myIntent.putExtra("username", broadcastedText.getText().toString()); //Optional parameters
-    		MainActivity.this.startActivity(myIntent);
-    		overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+    		/** NOTE: Always check getText().toString().isEmpty() before
+    		 * passing the text
+    		 */
+    		if( broadcastText.getText().toString().isEmpty() ){
+    			Log.e("empty", "empty text");
+    		}else{
+    			Intent myIntent = new Intent(MainActivity.this, WriteMainActivity.class);
+        		myIntent.putExtra("username", broadcastText.getText().toString()); //Optional parameters
+        		if (!FriendsID.getText().toString().isEmpty()){
+        			myIntent.putExtra("fusername",FriendsID.getText().toString()); //Optional parameters
+        		}
+        		
+        		Log.i("MainActivity", broadcastText.getText().toString());
+        		MainActivity.this.startActivity(myIntent);
+        		overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+    		}
+    		
+    		
+    		
     		
     	}
     });
