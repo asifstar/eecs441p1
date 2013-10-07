@@ -12,6 +12,11 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical" >
+        
+        <TextView
+            android:id="@+id/sessionNameText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <EditText
             android:id="@+id/writeText"
@@ -34,20 +39,20 @@
              android:hint="Type username..."
              android:inputType="textMultiLine|none"
              android:lines="1"
-             android:scrollHorizontally="false" >
+             android:scrollHorizontally="false"
+             android:visibility="gone" >
+
         </EditText>
 
         <TextView
             android:id="@+id/textView1"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="TextView" />
+            android:layout_height="wrap_content" />
         
           <TextView
-            android:id="@+id/textView2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="TextView" />
+              android:id="@+id/textView2"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
 
            <LinearLayout
 		        android:layout_width="match_parent"
@@ -64,6 +69,18 @@
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
               android:text="Redo" />
+           <Button
+              android:id="@+id/joinBtn"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Join" />
+           <Button
+              android:id="@+id/logoutBtn"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Logout" />
+           
+            
           </LinearLayout>
         
     </LinearLayout>

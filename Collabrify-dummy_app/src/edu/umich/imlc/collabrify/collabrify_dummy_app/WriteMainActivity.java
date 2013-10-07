@@ -50,6 +50,9 @@ public class WriteMainActivity extends Activity {
 	private Button undoBtn;
 	private Button redoBtn;
 	
+	private TextView sessionNameLabel;
+	private Button logOutBtn;
+	private Button joinSessionBtn;
 	
 	private ByteArrayInputStream baseFileBuffer;
 	private ByteArrayOutputStream baseFileReceiveBuffer;
@@ -98,6 +101,10 @@ public class WriteMainActivity extends Activity {
 		
 		msgWindow = new AlertDialog.Builder(this);
 		
+		sessionNameLabel = (TextView) findViewById(R.id.sessionNameText);
+		joinSessionBtn = (Button) findViewById(R.id.joinBtn);
+		logOutBtn = (Button) findViewById(R.id.logoutBtn);
+		
 		
 	}
 	
@@ -111,7 +118,23 @@ public class WriteMainActivity extends Activity {
 	    			TextProperties tp = undoStack.pop();
 	    			TextProperties tp2 = new TextProperties();
 	    			tp2.typedText = writePad.getText().toString();
-	    			writePad.setText(tp.typedText);
+	    			//String firstString = tp.typedText.substring(0,tp.typedText.length()-1);
+	    			//String secondString = writePad.getText().toString().substring(firstString.length(), writePad.getText().length());
+	    			//String finalString = firstString + secondString;
+	    			
+	    			String finalString = tp.typedText;
+	    			
+	    			if (LastChange == false){
+		    			String[] fString = tp2.typedText.split(tp.typedText);
+		    			
+		    			if (fString.length > 0){
+		    				finalString = fString[0] + fString[1];
+		    			}
+	    			}
+	    			
+	    			
+	    			writePad.setText(finalString);
+	    			//writePad.setText(tp.typedText);
 	    			redoStack.push(tp2);
 	    			allowChange = true;
 	    			Log.d("undopop", undoStack.size() +  " Poped Text: " + tp.typedText);
@@ -119,7 +142,7 @@ public class WriteMainActivity extends Activity {
 	    			
 	    			
 	    		}else{
-	    			label.setText("Nothing to undo!");
+	    			//label.setText("NoSthing to undo!");
 	    			
 	    		}
 	    	}
@@ -144,7 +167,7 @@ public class WriteMainActivity extends Activity {
 	    			Log.d("undopush", undoStack.size() +  " Pushed Text: " + tp2.typedText);
 	    			
 	    		}else{
-	    			label.setText("Nothing to redo!");
+	    			//label.setText("Nothing to redo!");
 	    			
 	    		}
 	    	}
@@ -162,15 +185,39 @@ public class WriteMainActivity extends Activity {
 		 writePad.addTextChangedListener(new TextWatcher(){
 		    	@Override
 		    	public void afterTextChanged(Editable s) {
-		    	   // This is triggered after change	
-		    		/*
-		    		if (writePad.hasFocus()){
-		    			TextProperties tp = new TextProperties();
-			    		tp.typedText = prevText;
-		    			undoStack.push(tp);
-		    		}
-		    		*/
-		    		recUser = userNameStr;
+		    		label.setText("");
+		    		if( myClient != null && myClient.inSession() )
+		            {
+		              try
+		              {
+		                if (recUser == userNameStr){
+		                LastChange = true;
+		                TextProperties tp = new TextProperties();
+		                	
+		            	InputProp.Properties ip = InputProp.Properties.newBuilder()
+		            			.setTypedText(writePad.getText().toString())
+		            			.setCursorPosition(writePad.getSelectionEnd())
+		            			.setMode(InputProp.Properties.EditMode.INSERT)
+		            			.setUserName(userNameStr).build();
+		            	
+		            	
+		            	label2.setText("Local Cursor: " + writePad.getSelectionEnd());
+		            	LocalCursorPosition = writePad.getSelectionEnd();
+		            	myClient.broadcast(ip.toByteArray(),
+		                    "lol");
+		            	 }else{
+		            		 recUser = userNameStr;
+		            		 
+		            	 }
+		              }
+		              catch( CollabrifyException e )
+		              {
+		                Log.e(TAG, "error", e);
+		              }
+		            }
+		    	
+		    		
+		    		
 		    	}
 		    	 
 		    	@Override
@@ -197,38 +244,6 @@ public class WriteMainActivity extends Activity {
 		    	   public void onTextChanged(CharSequence s, int start, 
 		    			     int before, int count) {
 		    		
-		    		//label2.setText("OnTyping: " + s + " NumChar: " + count + " StartPos: " + start + " Before: " + before);
-		    		//1label2.setText(writePad.getText().)
-		    		
-		    		if( myClient != null && myClient.inSession() )
-		            {
-		              try
-		              {
-		                if (recUser == userNameStr){
-		                TextProperties tp = new TextProperties();
-		                	
-		            	InputProp.Properties ip = InputProp.Properties.newBuilder()
-		            			.setTypedText(writePad.getText().toString())
-		            			.setCursorPosition(writePad.getSelectionEnd())
-		            			.setMode(InputProp.Properties.EditMode.INSERT)
-		            			.setUserName(userNameStr).build();
-		            	
-		            	LocalCursorPosition = writePad.getSelectionEnd();
-		            	Log.i("currentcursor" , String.valueOf(writePad.getSelectionEnd()) + " " + LocalCursorPosition);
-		                
-		            	
-		            	myClient.broadcast(ip.toByteArray(),
-		                    "lol");
-		            	  }
-		                
-		                //Log.i(TAG, "myClient Info=> " + myClient.displayName() + " " + myClient.currentSessionOwner().getId() + " " + myClient.currentSessionOrderId() + " " + myClient.currentSessionParticipantCount() + " " + myClient.accountGmail()  + " " + myClient.currentSessionParticipants().size());
-		                //Log.i("testing", writePad.)
-		              }
-		              catch( CollabrifyException e )
-		              {
-		                Log.e(TAG, "error", e);
-		              }
-		            }
 		    		
 		    		
 		    	}
@@ -258,6 +273,22 @@ public class WriteMainActivity extends Activity {
 		redoEvent();
 		
 		
+		joinSessionBtn.setOnClickListener(new OnClickListener()
+	    {
+
+	      @Override
+	      public void onClick(View v)
+	      {
+	        try
+	        {
+	          myClient.requestSessionList(tags);
+	        }
+	        catch( Exception e )
+	        {
+	          Log.e(TAG, "error", e);
+	        }
+	      }
+	    });
 	
 		
 		
@@ -299,34 +330,18 @@ public class WriteMainActivity extends Activity {
 					ip = InputProp.Properties.parseFrom(data);
 					
 					if (!ip.getUserName().equals(userNameStr)){
-						//label.setText("287" + writePad.getSelectionEnd());
 						writePad.setText(ip.getTypedText());
-						LastChange = false;
-						//label.setText("289" + writePad.getSelectionEnd());
-						Log.i("localcursor", "Receieved Event and After Set Text: " + LocalCursorPosition);
-						writePad.setSelection(LocalCursorPosition);
-						
-						//label.setText("Local: " + LocalCursorPosition + " Foreign: " + ip.getCursorPosition());
-						
-						//writePad.setSelection(LocalCursorPosition);
-						/*if (ip.getCursorPosition() < LocalCursorPosition){
-							writePad.setSelection(ip.getCursorPosition() + 1);
-						}else{
-							writePad.setSelection(ip.getCursorPosition());
-						}*/
-						//writePad.setSelection(LocalCursorPosition);
-						
+						writePad.setSelection(LocalCursorPosition + ip.getTypedText().length());
 						recUser = ip.getUserName().toString();
-						Log.i("parse", ip.getTypedText().toString() + " ColUser: " + ip.getUserName().toString() + " LocalUser: " + userNameStr);
+						label.setText(ip.getUserName() + " is typing...");
+						LastChange = false;
 					}
 					
-					//label.setText(ip.getTypedText());
 				} catch (InvalidProtocolBufferException e) {
 					// TODO Auto-generated catch block
 					Log.e("writify", "Failed to parseFrom");
 				}
-	            //String message = new String(data);
-	            //writePad.setText(message);
+	            
 	            
 	          }
 	        });
@@ -535,7 +550,7 @@ public class WriteMainActivity extends Activity {
 			if (extras != null){
 			    Log.i("username", extras.getString("username").toString());
 			    userNameStr = extras.getString("username").toString();
-			    recUser = userNameStr;
+			    //recUser = userNameStr;
 			}else{
 				Log.e("bundleIntent", "null");
 				
@@ -555,6 +570,7 @@ public class WriteMainActivity extends Activity {
 		        	myClient.createSession(newSession, tags, null, 0
 		        			);
 		        	Log.i("writify", "Custom Created Session: " + sessionName);
+		        	sessionNameLabel.setText(newSession);
 		        	
 		        }catch(CollabrifyException e){
 		        	Log.e(TAG, "error", e);
